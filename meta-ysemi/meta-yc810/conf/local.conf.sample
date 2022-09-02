@@ -1,5 +1,5 @@
 MACHINE ??= "evb-ast2600"
-DISTRO ?= "openbmc-phosphor"
+DISTRO ?= "openbmc-ysemi"
 PACKAGE_CLASSES ?= "package_ipk"
 SANITY_TESTED_DISTROS:append ?= " *"
 EXTRA_IMAGE_FEATURES ?= "debug-tweaks"
