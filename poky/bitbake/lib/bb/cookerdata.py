@@ -254,6 +254,7 @@ class CookerDataBuilder(object):
         filtered_keys = bb.utils.approved_variables()
         bb.data.inheritFromOS(self.basedata, self.savedenv, filtered_keys)
         self.basedata.setVar("BB_ORIGENV", self.savedenv)
+        self.basedata.setVar("__bbclasstype", "global")
 
         if worker:
             self.basedata.setVar("BB_WORKERCONTEXT", "1")
@@ -355,7 +356,7 @@ class CookerDataBuilder(object):
 
         layerconf = self._findLayerConf(data)
         if layerconf:
-            parselog.debug(2, "Found bblayers.conf (%s)", layerconf)
+            parselog.debug2("Found bblayers.conf (%s)", layerconf)
             # By definition bblayers.conf is in conf/ of TOPDIR.
             # We may have been called with cwd somewhere else so reset TOPDIR
             data.setVar("TOPDIR", os.path.dirname(os.path.dirname(layerconf)))
@@ -383,7 +384,7 @@ class CookerDataBuilder(object):
                 raise bb.BBHandledException()
 
             for layer in layers:
-                parselog.debug(2, "Adding layer %s", layer)
+                parselog.debug2("Adding layer %s", layer)
                 if 'HOME' in approved and '~' in layer:
                     layer = os.path.expanduser(layer)
                 if layer.endswith('/'):

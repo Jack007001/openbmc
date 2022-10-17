@@ -98,12 +98,15 @@ FVP_TERMINALS[bp.terminal_2] = ""
 FVP_TERMINALS[bp.terminal_3] = ""
 ```
 
-### `FVP_CONSOLE`
+### `FVP_CONSOLES`
 
-This specifies what serial port is used when `--console` is passed to runfvp. Note that this has to be the FVP identifier but without the board prefix, for example:
+This specifies what serial ports can be used in oeqa tests, along with an alias to be used in the test cases. Note that the values have to be the FVP identifier but without the board prefix, for example:
 ```
-FVP_CONSOLE = "terminal_0"
+FVP_CONSOLES[default] = "terminal_0"
+FVP_CONSOLES[tf-a] = "s_terminal_0"
 ```
+
+The 'default' console is also used when `--console` is passed to runfvp.
 
 ### `FVP_EXTRA_ARGS`
 
@@ -111,6 +114,14 @@ Arbitrary extra arguments that are passed directly to the FVP.  For example:
 
 ```
 FVP_EXTRA_ARGS = "--simlimit 60"
+```
+
+### `FVP_ENV_PASSTHROUGH`
+
+The FVP is launched with an isolated set of environment variables. Add the name of a Bitbake variable to this list to pass it through to the FVP environment. For example:
+
+```
+FVP_ENV_PASSTHROUGH = "ARMLMD_LICENSE_FILE FM_TRACE_PLUGINS"
 ```
 
 

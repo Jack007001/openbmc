@@ -23,7 +23,9 @@ do_install () {
 	rm -f ${D}${libdir}/libiberty*
 	rm -f ${D}${libdir}/libopcodes*
 	rm -f ${D}${includedir}/*.h
-	
+	rm -f ${D}${sysconfdir}/gprofng.rc
+	rmdir ${D}${sysconfdir} || :
+
 	cross_canadian_bindirlinks
 }
 

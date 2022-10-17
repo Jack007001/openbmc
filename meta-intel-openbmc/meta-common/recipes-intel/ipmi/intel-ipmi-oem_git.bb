@@ -5,12 +5,12 @@ LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=a6a4edad4aed50f39a66d098d74b265b"
 
 SRC_URI = "git://github.com/openbmc/intel-ipmi-oem;branch=master;protocol=https"
-SRCREV = "9722151c4553cae2eb1d4cadbf42c10018624fbc"
+SRCREV = "097497fb7b2466e85d2800991bef92017b044cda"
 
 S = "${WORKDIR}/git"
 PV = "0.1+git${SRCPV}"
 
-DEPENDS = "boost phosphor-ipmi-host phosphor-logging systemd intel-dbus-interfaces libgpiod"
+DEPENDS = "boost phosphor-ipmi-host phosphor-logging systemd phosphor-dbus-interfaces libgpiod"
 
 inherit cmake obmc-phosphor-ipmiprovider-symlink
 

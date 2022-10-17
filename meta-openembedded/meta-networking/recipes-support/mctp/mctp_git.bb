@@ -7,7 +7,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=4cc91856b08b094b4f406a29dc61db21"
 
 PV = "1.0+git${SRCPV}"
 
-SRCREV = "669740432af525c19a6a41cec777406fbbc24836"
+SRCREV = "ae3a9162d6c5df0fa50abc34fc951dfd0e3d23c5"
 
 SRC_URI = "git://github.com/CodeConstruct/mctp;branch=main;protocol=https"
 
@@ -22,13 +22,16 @@ PACKAGECONFIG ??= " \
 # mctpd will only be built if pkg-config detects libsystemd; in which case
 # we'll want to declare the dep and install the service.
 PACKAGECONFIG[systemd] = ",,systemd,libsystemd"
-SYSTEMD_SERVICE:${PN} = "mctpd.service"
+SYSTEMD_SERVICE:${PN} = "mctpd.service mctp.target mctp-local.target"
+SYSTEMD_AUTO_ENABLE_${PN} = "enable"
 
 do_install:append () {
     if ${@bb.utils.contains('PACKAGECONFIG', 'systemd', 'true', 'false', d)}; then
         install -d ${D}${systemd_system_unitdir}
         install -m 0644 ${S}/conf/mctpd.service \
                 ${D}${systemd_system_unitdir}/mctpd.service
+        install -m 0644 ${S}/conf/*.target \
+                ${D}${systemd_system_unitdir}/
         install -d ${D}${datadir}/dbus-1/system.d
         install -m 0644 ${S}/conf/mctpd-dbus.conf \
                 ${D}${datadir}/dbus-1/system.d/mctpd.conf

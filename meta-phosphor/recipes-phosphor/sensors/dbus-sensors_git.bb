@@ -1,14 +1,17 @@
 SUMMARY = "dbus-sensors"
 DESCRIPTION = "Dbus Sensor Services Configured from D-Bus"
-
-SRC_URI = "git://github.com/openbmc/dbus-sensors.git;branch=master;protocol=https"
-SRCREV = "6c106d66e390352a6914e8dc5ddad20943eceaa6"
-
-PV = "0.1+git${SRCPV}"
-
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=86d3f3a95c324c9479bd8986968f4327"
-
+DEPENDS = " \
+    boost \
+    i2c-tools \
+    libgpiod \
+    liburing \
+    nlohmann-json \
+    phosphor-logging \
+    sdbusplus \
+    "
+SRCREV = "2c5a1f2d2e3bc9c8cafd23faa79003acc6bf7779"
 PACKAGECONFIG ??= " \
     adcsensor \
     intelcpusensor \
@@ -21,7 +24,6 @@ PACKAGECONFIG ??= " \
     psusensor \
     external \
     "
-
 PACKAGECONFIG[adcsensor] = "-Dadc=enabled, -Dadc=disabled"
 PACKAGECONFIG[intelcpusensor] = "-Dintel-cpu=enabled, -Dintel-cpu=disabled"
 PACKAGECONFIG[exitairtempsensor] = "-Dexit-air=enabled, -Dexit-air=disabled"
@@ -33,6 +35,9 @@ PACKAGECONFIG[mcutempsensor] = "-Dmcu=enabled, -Dmcu=disabled"
 PACKAGECONFIG[psusensor] = "-Dpsu=enabled, -Dpsu=disabled"
 PACKAGECONFIG[nvmesensor] = "-Dnvme=enabled, -Dnvme=disabled"
 PACKAGECONFIG[external] = "-Dexternal=enabled, -Dexternal=disabled"
+PV = "0.1+git${SRCPV}"
+
+SRC_URI = "git://github.com/openbmc/dbus-sensors.git;branch=master;protocol=https"
 
 SYSTEMD_SERVICE:${PN} += "${@bb.utils.contains('PACKAGECONFIG', 'adcsensor', \
                                                'xyz.openbmc_project.adcsensor.service', \
@@ -61,21 +66,14 @@ SYSTEMD_SERVICE:${PN} += "${@bb.utils.contains('PACKAGECONFIG', 'mcutempsensor',
 SYSTEMD_SERVICE:${PN} += "${@bb.utils.contains('PACKAGECONFIG', 'psusensor', \
                                                'xyz.openbmc_project.psusensor.service', \
                                                '', d)}"
+SYSTEMD_SERVICE:${PN} += "${@bb.utils.contains('PACKAGECONFIG', 'nvmesensor', \
+                                               'xyz.openbmc_project.nvmesensor.service', \
+                                               '', d)}"
 SYSTEMD_SERVICE:${PN} += "${@bb.utils.contains('PACKAGECONFIG', 'external', \
                                                'xyz.openbmc_project.externalsensor.service', \
                                                '', d)}"
-
-DEPENDS = " \
-    boost \
-    i2c-tools \
-    libgpiod \
-    liburing \
-    nlohmann-json \
-    phosphor-logging \
-    sdbusplus \
-    "
-inherit pkgconfig meson systemd
-
 S = "${WORKDIR}/git"
+
+inherit pkgconfig meson systemd
 
 EXTRA_OEMESON:append = " -Dtests=disabled"

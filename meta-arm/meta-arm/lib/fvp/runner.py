@@ -59,8 +59,19 @@ class FVPRunner:
     async def start(self, config, extra_args=[], terminal_choice="none"):
         cli = cli_from_config(config, terminal_choice)
         cli += extra_args
+
+        # Pass through environment variables needed for GUI applications, such
+        # as xterm, to work.
+        env = config['env']
+        for name in ('DISPLAY', 'WAYLAND_DISPLAY'):
+            if name in os.environ:
+                env[name] = os.environ[name]
+
         self._logger.debug(f"Constructed FVP call: {cli}")
-        self._fvp_process = await asyncio.create_subprocess_exec(*cli, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        self._fvp_process = await asyncio.create_subprocess_exec(
+            *cli,
+            stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            env=env)
 
         def detect_terminals(line):
             m = re.match(r"^(\S+): Listening for serial connection on port (\d+)$", line)
@@ -97,7 +108,10 @@ class FVPRunner:
             console.expect(pexpect.EOF, timeout=5.0)
             console.close()
 
-        if self._fvp_process and self._fvp_process.returncode:
+        if self._fvp_process and self._fvp_process.returncode and \
+                self._fvp_process.returncode > 0:
+            # Return codes < 0 indicate that the process was explicitly
+            # terminated above.
             self._logger.info(f"FVP quit with code {self._fvp_process.returncode}")
             return self._fvp_process.returncode
         else:

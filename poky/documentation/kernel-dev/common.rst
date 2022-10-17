@@ -52,8 +52,8 @@ image and ready to make modifications as described in the
 ":ref:`kernel-dev/common:using \`\`devtool\`\` to patch the kernel`"
 section:
 
-1. *Initialize the BitBake Environment:* Before building an extensible
-   SDK, you need to initialize the BitBake build environment by sourcing
+1. *Initialize the BitBake Environment:*
+   you need to initialize the BitBake build environment by sourcing
    the build environment script (i.e. :ref:`structure-core-script`)::
 
       $ cd poky
@@ -120,67 +120,10 @@ section:
       NOTE: Starting bitbake server...
       $
 
-5. *Build the Extensible SDK:* Use BitBake to build the extensible SDK
-   specifically for use with images to be run using QEMU::
+5. *Build the Clean Image:* The final step in preparing to work on the
+   kernel is to build an initial image using ``bitbake``::
 
-      $ cd poky/build
-      $ bitbake core-image-minimal -c populate_sdk_ext
-
-   Once
-   the build finishes, you can find the SDK installer file (i.e.
-   ``*.sh`` file) in the following directory::
-
-      poky/build/tmp/deploy/sdk
-
-   For this example, the installer file is named
-   ``poky-glibc-x86_64-core-image-minimal-i586-toolchain-ext-&DISTRO;.sh``.
-
-6. *Install the Extensible SDK:* Use the following command to install
-   the SDK. For this example, install the SDK in the default
-   ``poky_sdk`` directory::
-
-      $ cd poky/build/tmp/deploy/sdk
-      $ ./poky-glibc-x86_64-core-image-minimal-i586-toolchain-ext-&DISTRO;.sh
-      Poky (Yocto Project Reference Distro) Extensible SDK installer version &DISTRO;
-      ============================================================================
-      Enter target directory for SDK (default: poky_sdk):
-      You are about to install the SDK to "/home/scottrif/poky_sdk". Proceed [Y/n]? Y
-      Extracting SDK......................................done
-      Setting it up...
-      Extracting buildtools...
-      Preparing build system...
-      Parsing recipes: 100% |#################################################################| Time: 0:00:52
-      Initializing tasks: 100% |############## ###############################################| Time: 0:00:04
-      Checking sstate mirror object availability: 100% |######################################| Time: 0:00:00
-      Parsing recipes: 100% |#################################################################| Time: 0:00:33
-      Initializing tasks: 100% |##############################################################| Time: 0:00:00
-      done
-      SDK has been successfully set up and is ready to be used.
-      Each time you wish to use the SDK in a new shell session, you need to source the environment setup script e.g.
-       $ . /home/scottrif/poky_sdk/environment-setup-i586-poky-linux
-
-
-7. *Set Up a New Terminal to Work With the Extensible SDK:* You must set
-   up a new terminal to work with the SDK. You cannot use the same
-   BitBake shell used to build the installer.
-
-   After opening a new shell, run the SDK environment setup script as
-   directed by the output from installing the SDK::
-
-      $ source poky_sdk/environment-setup-i586-poky-linux
-      "SDK environment now set up; additionally you may now run devtool to perform development tasks.
-      Run devtool --help for further details.
-
-   .. note::
-
-      If you get a warning about attempting to use the extensible SDK in
-      an environment set up to run BitBake, you did not use a new shell.
-
-8. *Build the Clean Image:* The final step in preparing to work on the
-   kernel is to build an initial image using ``devtool`` in the new
-   terminal you just set up and initialized for SDK work::
-
-      $ devtool build-image
+      $ bitbake core-image-minimal
       Parsing recipes: 100% |##########################################| Time: 0:00:05
       Parsing of 830 .bb files complete (0 cached, 830 parsed). 1299 targets, 47 skipped, 0 masked, 0 errors.
       WARNING: No packages to add, building image core-image-minimal unmodified
@@ -192,7 +135,6 @@ section:
       NOTE: Executing SetScene Tasks
       NOTE: Executing RunQueue Tasks
       NOTE: Tasks Summary: Attempted 2866 tasks of which 2604 didn't need to be rerun and all succeeded.
-      NOTE: Successfully built core-image-minimal. You can find output files in /home/scottrif/poky_sdk/tmp/deploy/images/qemux86
 
    If you were
    building for actual hardware and not for emulation, you could flash
@@ -202,7 +144,7 @@ section:
    Wiki page.
 
 At this point you have set up to start making modifications to the
-kernel by using the extensible SDK. For a continued example, see the
+kernel. For a continued example, see the
 ":ref:`kernel-dev/common:using \`\`devtool\`\` to patch the kernel`"
 section.
 
@@ -418,9 +360,9 @@ home directory:
 
       FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-      SRC_URI:append = " file://patch-file-one.patch"
-      SRC_URI:append = " file://patch-file-two.patch"
-      SRC_URI:append = " file://patch-file-three.patch"
+      SRC_URI += "file://patch-file-one.patch"
+      SRC_URI += "file://patch-file-two.patch"
+      SRC_URI += "file://patch-file-three.patch"
 
    The :term:`FILESEXTRAPATHS` and :term:`SRC_URI` statements
    enable the OpenEmbedded build system to find patch files. For more
@@ -744,7 +686,7 @@ Using ``devtool`` to Patch the Kernel
 =====================================
 
 The steps in this procedure show you how you can patch the kernel using
-the extensible SDK and ``devtool``.
+``devtool``.
 
 .. note::
 
@@ -766,8 +708,7 @@ console. The example is a continuation of the setup procedure found in
 the ":ref:`kernel-dev/common:getting ready to develop using \`\`devtool\`\``" Section.
 
 1. *Check Out the Kernel Source Files:* First you must use ``devtool``
-   to checkout the kernel source code in its workspace. Be sure you are
-   in the terminal set up to do work with the extensible SDK.
+   to checkout the kernel source code in its workspace.
 
    .. note::
 
@@ -867,7 +808,7 @@ the ":ref:`kernel-dev/common:getting ready to develop using \`\`devtool\`\``" Se
       the results of your ``printk`` statements as part of the output
       when you scroll down the console window.
 
-6. *Stage and commit your changes*: Within your eSDK terminal, change
+6. *Stage and commit your changes*: Change
    your working directory to where you modified the ``calibrate.c`` file
    and use these Git commands to stage and commit your changes::
 
@@ -878,8 +819,7 @@ the ":ref:`kernel-dev/common:getting ready to develop using \`\`devtool\`\``" Se
 
 7. *Export the Patches and Create an Append File:* To export your
    commits as patches and create a ``.bbappend`` file, use the following
-   command in the terminal used to work with the extensible SDK. This
-   example uses the previously established layer named ``meta-mylayer``.
+   command. This example uses the previously established layer named ``meta-mylayer``.
    ::
 
       $ devtool finish linux-yocto ~/meta-mylayer
@@ -907,8 +847,8 @@ Using Traditional Kernel Development to Patch the Kernel
 ========================================================
 
 The steps in this procedure show you how you can patch the kernel using
-traditional kernel development (i.e. not using ``devtool`` and the
-extensible SDK as described in the
+traditional kernel development (i.e. not using ``devtool``
+as described in the
 ":ref:`kernel-dev/common:using \`\`devtool\`\` to patch the kernel`"
 section).
 
@@ -1062,7 +1002,7 @@ Section.
    contents::
 
       FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
-      SRC_URI:append = " file://0001-calibrate.c-Added-some-printk-statements.patch"
+      SRC_URI += "file://0001-calibrate.c-Added-some-printk-statements.patch"
 
    The :term:`FILESEXTRAPATHS` and :term:`SRC_URI` statements
    enable the OpenEmbedded build system to find the patch file.
@@ -1376,7 +1316,7 @@ In order to run this task, you must have an existing ``.config`` file.
 See the ":ref:`kernel-dev/common:using \`\`menuconfig\`\``" section for
 information on how to create a configuration file.
 
-Following is sample output from the ``do_kernel_configcheck`` task:
+Following is sample output from the :ref:`ref-tasks-kernel_configcheck` task:
 
 .. code-block:: none
 
@@ -1456,7 +1396,7 @@ possible by reading the output of the kernel configuration fragment
 audit, noting any issues, making changes to correct the issues, and then
 repeating.
 
-As part of the kernel build process, the ``do_kernel_configcheck`` task
+As part of the kernel build process, the :ref:`ref-tasks-kernel_configcheck` task
 runs. This task validates the kernel configuration by checking the final
 ``.config`` file against the input files. During the check, the task
 produces warning messages for the following issues:
@@ -1490,13 +1430,13 @@ To streamline the configuration, do the following:
    successfully. Use this configuration file as your baseline.
 
 2. *Run Configure and Check Tasks:* Separately run the
-   ``do_kernel_configme`` and ``do_kernel_configcheck`` tasks::
+   :ref:`ref-tasks-kernel_configme` and :ref:`ref-tasks-kernel_configcheck` tasks::
 
       $ bitbake linux-yocto -c kernel_configme -f
       $ bitbake linux-yocto -c kernel_configcheck -f
 
 3. *Process the Results:* Take the resulting list of files from the
-   ``do_kernel_configcheck`` task warnings and do the following:
+   :ref:`ref-tasks-kernel_configcheck` task warnings and do the following:
 
    -  Drop values that are redefined in the fragment but do not change
       the final ``.config`` file.
@@ -1510,7 +1450,7 @@ To streamline the configuration, do the following:
 
 4. *Re-Run Configure and Check Tasks:* After you have worked through the
    output of the kernel configuration audit, you can re-run the
-   ``do_kernel_configme`` and ``do_kernel_configcheck`` tasks to see the
+   :ref:`ref-tasks-kernel_configme` and :ref:`ref-tasks-kernel_configcheck` tasks to see the
    results of your changes. If you have more issues, you can deal with
    them as described in the previous step.
 
@@ -1935,7 +1875,7 @@ build.
 2. *Add the Feature File to SRC_URI:* Add the ``.scc`` file to the
    recipe's :term:`SRC_URI` statement::
 
-      SRC_URI:append = " file://test.scc"
+      SRC_URI += "file://test.scc"
 
    The leading space before the path is important as the path is
    appended to the existing path.
@@ -1944,7 +1884,7 @@ build.
    :term:`KERNEL_FEATURES` statement to specify the feature as a kernel
    feature::
 
-      KERNEL_FEATURES:append = " test.scc"
+      KERNEL_FEATURES += "test.scc"
 
    The OpenEmbedded build
    system processes the kernel feature when it builds the kernel.

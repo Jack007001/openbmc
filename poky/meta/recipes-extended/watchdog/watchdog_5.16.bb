@@ -13,6 +13,7 @@ SRC_URI = "${SOURCEFORGE_MIRROR}/watchdog/watchdog-${PV}.tar.gz \
            file://watchdog.init \
            file://wd_keepalive.init \
            file://0001-wd_keepalive.service-use-run-instead-of-var-run.patch \
+           file://0001-shutdown-Do-not-guard-sys-quota.h-sys-swap.h-and-sys.patch \
 "
 
 SRC_URI[md5sum] = "1b4f51cabc64d1bee2fce7cdd626831f"
@@ -26,10 +27,6 @@ UPSTREAM_CHECK_URI = "http://sourceforge.net/projects/watchdog/files/watchdog/"
 UPSTREAM_CHECK_REGEX = "/watchdog/(?P<pver>(\d+[\.\-_]*)+)/"
 
 inherit autotools update-rc.d systemd pkgconfig
-
-DEPENDS += "libtirpc"
-CFLAGS += "-I${STAGING_INCDIR}/tirpc"
-LDFLAGS += "-ltirpc"
 
 EXTRA_OECONF += " --disable-nfs "
 CACHED_CONFIGUREVARS += "ac_cv_path_PATH_SENDMAIL=${sbindir}/sendmail"

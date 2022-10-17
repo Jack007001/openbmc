@@ -36,11 +36,12 @@ PACKAGECONFIG[sensors-cache] = "-Dsensors-cache=enabled,-Dsensors-cache=disabled
 
 
 DEPENDS += "nlohmann-json"
+DEPENDS += "openssl"
 DEPENDS += "phosphor-state-manager"
 DEPENDS += "${@ipmi_whitelists(d)}"
 DEPENDS += "phosphor-dbus-interfaces"
 DEPENDS += "phosphor-logging"
-DEPENDS += "phosphor-mapper"
+DEPENDS += "libmapper"
 DEPENDS += "sdbusplus"
 DEPENDS += "${PYTHON_PN}-sdbus++-native"
 DEPENDS += "virtual/phosphor-ipmi-inventory-sel"
@@ -58,10 +59,10 @@ RDEPENDS:${PN} += "clear-once"
 RDEPENDS:${PN} += "phosphor-network"
 RDEPENDS:${PN} += "phosphor-time-manager"
 RDEPENDS:${PN} += "${VIRTUAL-RUNTIME_ipmi-config}"
-RDEPENDS:${PN} += "virtual/obmc-watchdog"
+RDEPENDS:${PN} += "phosphor-watchdog"
 RDEPENDS:${PN} += "${VIRTUAL-RUNTIME_obmc-bmc-state-manager}"
-RDEPENDS:${PN} += "${VIRTUAL-RUNTIME_obmc-bmc-version}"
-RDEPENDS:${PN} += "${VIRTUAL-RUNTIME_obmc-bmc-updater}"
+RDEPENDS:${PN} += "phosphor-software-manager-version"
+RDEPENDS:${PN} += "phosphor-software-manager-updater"
 
 inherit useradd
 

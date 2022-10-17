@@ -19,6 +19,8 @@ SRC_URI = "https://archive.mariadb.org/${BP}/source/${BP}.tar.gz \
            file://ssize_t.patch \
            file://mm_malloc.patch \
            file://sys_futex.patch \
+           file://cross-compiling.patch \
+           file://0001-sql-CMakeLists.txt-fix-gen_lex_hash-not-found.patch \
           "
 SRC_URI:append:libc-musl = " file://ppc-remove-glibc-dep.patch"
 
@@ -30,7 +32,7 @@ S = "${WORKDIR}/mariadb-${PV}"
 
 BINCONFIG_GLOB = "mysql_config"
 
-inherit cmake gettext binconfig update-rc.d useradd systemd multilib_script
+inherit cmake gettext binconfig update-rc.d useradd systemd multilib_script pkgconfig
 
 MULTILIB_SCRIPTS = "${PN}-server:${bindir}/mariadbd-safe \
                     ${PN}-setupdb:${bindir}/mariadb-install-db"
@@ -60,11 +62,14 @@ FILES:${PN}-setupdb = "${sysconfdir}/init.d/install_db \
                        ${bindir}/mysql-systemd-start \
                        "
 
-PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'pam', d)} openssl"
+PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'pam', d)} lz4 openssl"
+EXTRA_OEMAKE = "'GEN_LEX_HASH=${STAGING_BINDIR_NATIVE}/gen_lex_hash'"
+
 PACKAGECONFIG:class-native = ""
 PACKAGECONFIG[pam] = ",-DWITHOUT_AUTH_PAM=TRUE,libpam"
 PACKAGECONFIG[valgrind] = "-DWITH_VALGRIND=TRUE,-DWITH_VALGRIND=FALSE,valgrind"
 PACKAGECONFIG[krb5] = ", ,krb5"
+PACKAGECONFIG[lz4] = ", ,lz4"
 PACKAGECONFIG[openssl] = "-DWITH_SSL='system',-DWITH_SSL='bundled',openssl"
 
 # MariaDB doesn't link properly with gold
@@ -93,9 +98,9 @@ EXTRA_OECMAKE = "-DWITH_EMBEDDED_SERVER=ON \
                  -DINSTALL_SYSCONFDIR:PATH=${sysconfdir} \
                  -DMYSQL_DATADIR:PATH=/var/mysql \
                  -DCAT_EXECUTABLE=`which cat` \
+                 -DSTACK_DIRECTION=1 \
                  -DCMAKE_AR:FILEPATH=${AR}"
 
-EXTRA_OECMAKE:prepend:class-target = "-DCMAKE_CROSSCOMPILING_EMULATOR=${WORKDIR}/qemuwrapper "
 
 # With Ninja it fails with:
 # make: *** No rule to make target `install'.  Stop.
@@ -119,18 +124,12 @@ do_generate_toolchain_file:append:class-native () {
     sed -i "/set( CMAKE_SYSTEM_PROCESSOR/d" ${WORKDIR}/toolchain.cmake
 }
 
-do_configure:prepend:class-target () {
-	# Write out a qemu wrapper that will be used by cmake
-	# so that it can run target helper binaries through that.
-	qemu_binary="${@qemu_wrapper_cmdline(d, d.getVar('STAGING_DIR_HOST'), [d.expand('${STAGING_DIR_HOST}${libdir}'),d.expand('${STAGING_DIR_HOST}${base_libdir}')])}"
-	cat > ${WORKDIR}/qemuwrapper << EOF
-#!/bin/sh
-$qemu_binary "\$@"
-EOF
-	chmod +x ${WORKDIR}/qemuwrapper
-}
 
 do_compile:prepend:class-target () {
+    # These need to be in-tree or make will think they need to be built,
+    # and since we're cross-compiling that is disabled
+    cp ${STAGING_BINDIR_NATIVE}/comp_err ${S}/extra
+    cp ${STAGING_BINDIR_NATIVE}/comp_sql ${S}/scripts
     if [ "${@bb.utils.contains('PACKAGECONFIG', 'krb5', 'yes', 'no', d)}" = "no" ]; then
         if ! [ -e ${B}/include/openssl/kssl.h ] ; then
             mkdir -p ${B}/include/openssl
@@ -222,6 +221,17 @@ RDEPENDS:${PN}-setupdb = "coreutils"
 
 # Allow old code to link to the backward compatible library
 RDEPENDS:libmysqlclient-dev = "libmysqlclient-r-dev"
+
+PACKAGE_PREPROCESS_FUNCS += "src_package_preprocess"
+src_package_preprocess () {
+        # Trim build paths from comments in generated sources to ensure reproducibility
+        sed -i -e "s,${S}/sql/,,g" \
+               -e "s,${B}/sql/,,g" \
+            ${B}/sql/yy_oracle.hh \
+            ${B}/sql/yy_mariadb.cc \
+            ${B}/sql/yy_mariadb.hh \
+            ${B}/sql/yy_oracle.cc
+}
 
 FILES:libmysqlclient = "\
     ${libdir}/libmysqlclient.so.* \
